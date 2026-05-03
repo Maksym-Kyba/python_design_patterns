@@ -1,0 +1,147 @@
+from state_machine import (
+    Event,
+    InvalidStateTransition,
+    State,
+    acts_as_state_machine,
+    after,
+    before,
+)
+
+
+@acts_as_state_machine
+class Process:
+    created = State(initial=True)
+    waiting = State()
+    running = State()
+    terminated = State()
+    blocked = State()
+    swapped_out_waiting = State()
+    swapped_out_blocked = State()
+
+    wait = Event(
+        from_states=(
+            created,
+            running,
+            blocked,
+            swapped_out_waiting,
+        ),
+        to_state=waiting,
+    )
+    run = Event(
+        from_states=waiting, to_state=running
+    )
+    terminate = Event(
+        from_states=running, to_state=terminated
+    )
+    block = Event(
+        from_states=(
+            running,
+            swapped_out_blocked,
+        ),
+        to_state=blocked,
+    )
+    swap_wait = Event(
+        from_states=waiting,
+        to_state=swapped_out_waiting,
+    )
+    swap_block = Event(
+        from_states=blocked,
+        to_state=swapped_out_blocked,
+    )
+
+    def __init__(self, name):
+        self.name = name
+
+    @after("wait")
+    def wait_info(self):
+        print(f"{self.name} entered waiting mode")
+
+    @after("run")
+    def run_info(self):
+        print(f"{self.name} is running")
+
+    @before("terminate")
+    def terminate_info(self):
+        print(f"{self.name} terminated")
+
+    @after("block")
+    def block_info(self):
+        print(f"{self.name} is blocked")
+
+    @after("swap_wait")
+    def swap_wait_info(self):
+        print(
+            f"{self.name} is swapped out and waiting"
+        )
+
+    @after("swap_block")
+    def swap_block_info(self):
+        print(
+            f"{self.name} is swapped out and blocked"
+        )
+
+
+def transition(proc, event, event_name):
+    try:
+        event()
+    except InvalidStateTransition:
+        msg = (
+            f"Transition of {proc.name} from {proc.current_state} "
+            f"to {event_name} failed"
+        )
+        print(msg)
+
+
+def state_info(proc):
+    print(
+        f"state of {proc.name}: {proc.current_state}"
+    )
+
+
+def main():
+    RUNNING = "running"
+    WAITING = "waiting"
+    BLOCKED = "blocked"
+    TERMINATED = "terminated"
+
+    p1, p2 = Process("process1"), Process(
+        "process2"
+    )
+    [state_info(p) for p in (p1, p2)]
+
+    print()
+    transition(p1, p1.wait, WAITING)
+    transition(p2, p2.terminate, TERMINATED)
+    [state_info(p) for p in (p1, p2)]
+
+    print()
+    transition(p1, p1.run, RUNNING)
+    transition(p2, p2.wait, WAITING)
+    [state_info(p) for p in (p1, p2)]
+
+    print()
+    transition(p2, p2.run, RUNNING)
+    [state_info(p) for p in (p1, p2)]
+
+    print()
+    [
+        transition(p, p.block, BLOCKED)
+        for p in (p1, p2)
+    ]
+    [state_info(p) for p in (p1, p2)]
+
+    print()
+    [
+        transition(p, p.terminate, TERMINATED)
+        for p in (p1, p2)
+    ]
+    [state_info(p) for p in (p1, p2)]
+
+
+if __name__ == "__main__":
+    main()
+
+#State Pattern позбавляє код мільйону if-else просто задаючи можливі і неможливі переходи
+#По факту це просто застосування на практиці теорії автоматів
+#Також тут досить легко зрозуміти шо можна а шо ні: все сконцентровано на початку в карті переходів
+#Легко протестувати просто тестуючи переходи між станами
