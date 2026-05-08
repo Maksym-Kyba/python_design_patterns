@@ -11,7 +11,7 @@
 
 ## Репозиторій
 
-🔗 [github.com/Maksym-Kyba/python_design_patterns](https://github.com/Maksym-Kyba/python_design_patterns.git)
+[github.com/Maksym-Kyba/python_design_patterns](https://github.com/Maksym-Kyba/python_design_patterns.git)
 
 Ось посилання на мій репозиторій. Папок і файлів у ньому справді багато, але це все код, який був наданий курсом для опрацювання і все що я там дописав - це коментарі майже до кожного прикладу для кращого розуміння і запам'ятовування. Практики ж на курсі взагалі не було, тому зараз я сфокусуюсь на тому, чого мене цей курс навчив теоретично.
 
